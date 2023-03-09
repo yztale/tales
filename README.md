@@ -1,19 +1,39 @@
-# WordPress Background command execution vulnerability 
-## Build the local environment
-https://cn.wordpress.org/download/#download-install
-## Vulnerability recurrence
+# UCMS_v1.6.0 Arbitrary file upload vulnerability
 
-/wp-admin/profile.php
-![image](https://user-images.githubusercontent.com/45749015/216503131-25f90fa2-17f2-48f5-b52f-579d49ab3c1c.png)
+vendor: http://uuu.la/
 
-Click >> Tools  >> Plugin File Editor  >>  Change Code hello.php   >>  Add Code `<?php eval(@$_POST['password']);?>` >> Save
+UCMS 1.6 installation package： http://uuu.la/uploadfile/file/ucms_1.6.zip
 
-![image](https://user-images.githubusercontent.com/45749015/216503630-cbe9baa1-aff5-4dbc-be66-9107e5102a0b.png)
-Use the webshell management tool to connect
-![image](https://user-images.githubusercontent.com/45749015/216503750-c1decaba-45bf-464d-9b5f-1af9ea720f43.png)
-![image](https://user-images.githubusercontent.com/45749015/216503781-51f44f7b-af40-4dbd-8500-f736b217c86c.png)
-## code analysis
-Get address:
-![image](https://user-images.githubusercontent.com/45749015/216503925-9d8f3295-946c-4d5b-b461-b7b0e8c3d94b.png)
-The content is not filtered, resulting in the successful saving of illegal programs
-![image](https://user-images.githubusercontent.com/45749015/216503967-c5fd373d-3d91-47a1-aaaf-87f931f3bc1e.png)
+Vulnerability type：
+
+V 1.6.0
+
+Recurrence environment：
+
+Windows 10
+
+phpstudy
+
+Vulnerability description：
+
+The vulnerability lies in /ucms/sadmin/fileedit.php file, The file suffix verification can be bypassed by modifying the POST packet, so as to achieve arbitrary file upload.
+
+Loophole recurrence：
+
+`ucms/sadmin/fileedit.php`
+The code exists in the file`if(!@fwrite($fp,$content) && strlen($content)<>0){`
+<img width="711" alt="image" src="https://user-images.githubusercontent.com/45749015/223931831-11b2ea6c-d7c1-42e9-95ce-44bc7fd243fd.png">
+Then track the parameters of the `fwrite` function `$fp = @fopen($alldir.$filename,"w");`
+It is found that `$fp` is the receiving file, and `fopen` uses writing. If there is no such file, a new file will be created. `$content` is the value of co, which is the content written in.
+Then continue to track `filename`
+<img width="709" alt="image" src="https://user-images.githubusercontent.com/45749015/223932305-413d93fb-fdea-48ff-9ec2-da375e27d3de.png">
+Found that `filename` is the value of `file`.
+The file suffix verification can be bypassed by modifying the POST packet, so as to achieve arbitrary file upload.
+<img width="710" alt="image" src="https://user-images.githubusercontent.com/45749015/223932616-b4a63b2a-cf58-4d5d-857f-cc4783d1f768.png">
+First upload a txt type file, then edit and change the content to a php Trojan.
+<img width="709" alt="image" src="https://user-images.githubusercontent.com/45749015/223932825-67f09506-b2ce-4253-a741-69005ab1e4f4.png">
+Save the modified file, then grab the data request package,In the process, change file=result.txt to file=333.php.
+<img width="712" alt="image" src="https://user-images.githubusercontent.com/45749015/223932943-866c25ed-ccbf-4bfe-911e-409cb1d0d10d.png">
+Then access the uploaded file 333.php. Get webshell.
+<img width="711" alt="image" src="https://user-images.githubusercontent.com/45749015/223933198-e30deae9-9a25-4a83-8e31-9c67eb93a261.png">
+
